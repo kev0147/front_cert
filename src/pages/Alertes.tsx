@@ -11,14 +11,11 @@ export default function Alertes({ onNavigate }: AlertesProps) {
   const [typeAlertes, setTypeAlertes] = useState<TypeAlerte[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string | number>("all");
-  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchAlertes();
   }, []);
 
-  useEffect(() => {
-  }, [searchTerm, alertes]);
 
   // ===== Fetch all alertes with type_alerte relationship =====
   const fetchAlertes = async () => {
@@ -78,10 +75,10 @@ export default function Alertes({ onNavigate }: AlertesProps) {
   const getSeveriteColor = (severite: string | null) => {
     if (!severite) return 'bg-gray-500';
     const sev = severite.toLowerCase();
-    if (sev.includes('critique') || sev.includes('critical')) return 'bg-red-600';
-    if (sev.includes('élevé') || sev.includes('high') || sev.includes('eleve')) return 'bg-orange-500';
-    if (sev.includes('moyen') || sev.includes('medium')) return 'bg-yellow-500';
-    if (sev.includes('faible') || sev.includes('low')) return 'bg-green-500';
+    if (Number(sev) >= 8) return 'bg-red-600';
+    if (Number(sev) < 8 && Number(sev) >= 6) return 'bg-orange-500';
+    if (Number(sev) < 6 && Number(sev) >= 4) return 'bg-yellow-500';
+    if (Number(sev) < 4) return 'bg-green-500';
     return 'bg-gray-500';
   };
 
@@ -126,10 +123,18 @@ export default function Alertes({ onNavigate }: AlertesProps) {
     onNavigate('alerte-detail', alerteId);
   };
 
-  const filteredAlertes =
-    selectedType === "all"
-      ? alertes
-      : alertes.filter((a) => a.type_alerte?.id === selectedType);
+  const filteredByTypeAlertes = selectedType === "all"
+    ? alertes
+    : alertes.filter((a) => a.type_alerte?.id === selectedType);
+
+  const filteredAlertes = searchTerm === '' ? filteredByTypeAlertes : filteredByTypeAlertes.filter(
+    (alerte) =>
+      alerte.intitule.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (alerte.reference && alerte.reference.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (alerte.synthese && alerte.synthese.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (alerte.risque && alerte.risque.toLowerCase().includes(searchTerm.toLowerCase()))
+  );;
+
 
   const types = [
     { id: "all", libelle: "Toutes" },

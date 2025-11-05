@@ -1,13 +1,17 @@
 import { Mail, Phone, Globe } from 'lucide-react';
 
-export default function Contact() {
+type ContactProps = {
+  onNavigate: (page: string) => void;
+};
+
+export default function Contact({ onNavigate }: ContactProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="bg-slate-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact</h1>
           <p className="text-xl text-gray-300">
-            
+
           </p>
         </div>
       </div>
@@ -90,7 +94,9 @@ export default function Contact() {
           <p className="text-gray-600 mb-4">
             Besoin de déclarer un incident de sécurité ?
           </p>
-          <button className="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 shadow-lg">
+          <button 
+            onClick={() => onNavigate('incident')} 
+            className="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 shadow-lg">
             Déclarer un incident
           </button>
         </div>

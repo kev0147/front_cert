@@ -55,10 +55,10 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
                 created_at: a.created_at,
                 updated_at: a.updated_at,
                 // include type_alerte if nested
-                type_alerte: type,
-                type_alerte_id: null,
+                type_alerte: a.date_initial,
+                type_alerte_id: type ? type.id : null,
                 date_initial: null,
-                date_traite: null,
+                date_traite: a.date_traite,
                 concerne: null,
                 file_url: null,
                 created_by: null,
@@ -79,10 +79,10 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
     const getSeveriteColor = (severite: string | null) => {
         if (!severite) return 'bg-gray-500';
         const sev = severite.toLowerCase();
-        if (sev.includes('critique') || sev.includes('critical')) return 'bg-red-600';
-        if (sev.includes('élevé') || sev.includes('high') || sev.includes('eleve')) return 'bg-orange-500';
-        if (sev.includes('moyen') || sev.includes('medium')) return 'bg-yellow-500';
-        if (sev.includes('faible') || sev.includes('low')) return 'bg-green-500';
+        if (Number(sev) >= 8) return 'bg-red-600';
+        if (Number(sev) < 8 && Number(sev) >= 6) return 'bg-orange-500';
+        if (Number(sev) < 6 && Number(sev) >= 4) return 'bg-yellow-500';
+        if (Number(sev) < 4) return 'bg-green-500';
         return 'bg-gray-500';
     };
 
@@ -120,15 +120,12 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
 
     // ===== Handle download =====
     const handleDownload = () => {
-        if (!alerte?.file_url) {
-            alert('Aucun fichier disponible pour cette alerte');
-            return;
-        }
 
         try {
             // In a real implementation, this would call your backend API
             // Example: GET /alertes/:id/download
-            window.open(alerte.file_url, '_blank');
+            const base = import.meta.env.VITE_SUPABASE_URL;
+            window.open(`${base}/alertes/${alerte?.id}/imprimer`, '_blank');
         } catch (error) {
             console.error('Erreur lors du téléchargement:', error);
             alert('Erreur lors du téléchargement du fichier');
@@ -180,7 +177,7 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
                             <h1 className="text-3xl md:text-4xl font-bold mb-4">{alerte.intitule}</h1>
                         </div>
                         {/* ===== DOWNLOAD BUTTON IN HEADER ===== */}
-                        {alerte.file_url && (
+                        {
                             <button
                                 onClick={handleDownload}
                                 className="flex items-center space-x-2 px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all transform hover:scale-105 shadow-lg"
@@ -188,7 +185,7 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
                                 <Download className="h-5 w-5" />
                                 <span>Télécharger le document</span>
                             </button>
-                        )}
+                        }
                     </div>
                 </div>
             </div>
@@ -230,13 +227,13 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
                         </div>
 
                         {/* ===== Date initiale ===== */}
-                        {alerte.date_initial && (
+                        {alerte.created_at && (
                             <div className="flex items-start space-x-3">
                                 <Calendar className="h-6 w-6 text-slate-600 mt-1" />
                                 <div>
                                     <p className="text-sm text-gray-600 font-medium">Date de découverte</p>
                                     <p className="text-lg text-slate-800">
-                                        {new Date(alerte.date_initial).toLocaleDateString('fr-FR', {
+                                        {new Date(alerte.created_at).toLocaleDateString('fr-FR', {
                                             day: 'numeric',
                                             month: 'long',
                                             year: 'numeric',
@@ -326,8 +323,13 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
                 {/* ===== SOURCE SECTION ===== */}
                 {alerte.source && (
                     <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-                        <h2 className="text-2xl font-bold text-slate-800 mb-4">Sources</h2>
-                        <p className="text-slate-700">{alerte.source}</p>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center space-x-2">
+                            Sources
+                        </h2>
+                        <div
+                            className="prose prose-slate max-w-none ckeditor-content"
+                            dangerouslySetInnerHTML={{ __html: alerte.source }}
+                        />
                     </div>
                 )}
 

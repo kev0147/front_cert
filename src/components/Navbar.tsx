@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Shield, Menu, X, ChevronDown } from 'lucide-react';
+import logo from '../assets/c82ab65d-63cd-4f9b-8b77-1b0a70a7415f.png';
+import { Menu, X } from 'lucide-react';
 
 type NavbarProps = {
   currentPage: string;
@@ -8,7 +9,6 @@ type NavbarProps = {
 
 export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isPublicationsOpen, setIsPublicationsOpen] = useState(false);
 
   return (
     <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
@@ -18,9 +18,9 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
             className="flex items-center space-x-2 cursor-pointer group"
             onClick={() => onNavigate('home')}
           >
-            <Shield className="h-8 w-8 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
+            <img className="h-8 w-8 text-cyan-400 group-hover:text-cyan-300 transition-colors" src={logo} alt={logo} />
             <span className="text-xl font-bold group-hover:text-cyan-300 transition-colors">
-              CyberSecure
+              CERT BF
             </span>
           </div>
 
@@ -101,7 +101,7 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
             <button
               onClick={() => onNavigate('alertes')}
               className={`px-4 py-2 rounded-md transition-all ${
-                currentPage === 'documentation'
+                currentPage === 'alertes'
                   ? 'bg-slate-800 text-cyan-400'
                   : 'text-gray-300 hover:bg-slate-800 hover:text-white'
               }`}

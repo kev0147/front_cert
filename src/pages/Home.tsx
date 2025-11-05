@@ -10,7 +10,8 @@ export default function Home({ onNavigate }: HomeProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [alertes, setAlertes] = useState<Alerte[]>([]);
   const [typeAlertes, setTypeAlertes] = useState<TypeAlerte[]>([]);
-  const [alerteScrolls, setAlerteScrolls] = useState<{[key: number]: number}>({});
+  const [alerteScrolls, setAlerteScrolls] = useState<{ [key: number]: number }>({});
+
 
   const slides = [
     {
@@ -101,10 +102,10 @@ export default function Home({ onNavigate }: HomeProps) {
   const getSeveriteColor = (severite: string | null) => {
     if (!severite) return 'bg-gray-500';
     const sev = severite.toLowerCase();
-    if (sev.includes('critique') || sev.includes('critical')) return 'bg-red-600';
-    if (sev.includes('élevé') || sev.includes('high') || sev.includes('eleve')) return 'bg-orange-500';
-    if (sev.includes('moyen') || sev.includes('medium')) return 'bg-yellow-500';
-    if (sev.includes('faible') || sev.includes('low')) return 'bg-green-500';
+    if (Number(sev) >= 8) return 'bg-red-600';
+    if (Number(sev) < 8 && Number(sev) >= 6) return 'bg-orange-500';
+    if (Number(sev) < 6 && Number(sev) >= 4) return 'bg-yellow-500';
+    if (Number(sev) < 4) return 'bg-green-500';
     return 'bg-gray-500';
   };
 
@@ -177,64 +178,6 @@ export default function Home({ onNavigate }: HomeProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* ===== ARTICLES SECTION ===== */}
-        {/*     <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-slate-800">Articles Récents</h2>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => scrollArticles('left')}
-                disabled={articleScroll === 0}
-                className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="h-5 w-5 text-slate-700" />
-              </button>
-              <button
-                onClick={() => scrollArticles('right')}
-                disabled={articleScroll >= articles.length - 3}
-                className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="h-5 w-5 text-slate-700" />
-              </button>
-            </div>
-          </div>
-          <div className="overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-in-out gap-6"
-              style={{ transform: `translateX(-${articleScroll * (100 / 3)}%)` }}
-            >
-              {articles.map((article) => (
-                <div
-                  key={article.id}
-                  className="min-w-[calc(33.333%-16px)] bg-white rounded-lg shadow-md hover:shadow-xl transition-all overflow-hidden group cursor-pointer"
-                >
-                  <div className="h-48 overflow-hidden">
-                    <img
-                      src={article.image_url || 'https://images.pexels.com/photos/60504/security-protection-anti-virus-software-60504.jpeg'}
-                      alt={article.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold text-slate-800 mb-2 group-hover:text-cyan-600 transition-colors">
-                      {article.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm line-clamp-3">{article.summary}</p>
-                    <p className="text-xs text-gray-400 mt-4">
-                      {new Date(article.published_at).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section> */}
-
-
 
         {/* ===== ALERTES SECTION WITH UPDATED FIELDS ===== */}
         {/*         <section>
@@ -311,7 +254,7 @@ export default function Home({ onNavigate }: HomeProps) {
           </div>
         </section> */}
 
-{/*         {
+        {/*         {
           typeAlertes.map((type) => (
             <section key={type.id}>
               <div className="flex items-center justify-between mb-8">
@@ -396,7 +339,7 @@ export default function Home({ onNavigate }: HomeProps) {
           const typeAlertesList = alertes
             .filter(a => a.type_alerte?.id === type.id)
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            .slice(0, 6);
+            .slice(0, 5);
 
           if (typeAlertesList.length === 0) return null;
 
@@ -429,7 +372,7 @@ export default function Home({ onNavigate }: HomeProps) {
               <div className="overflow-hidden">
                 <div
                   className="flex transition-transform duration-500 ease-in-out gap-6"
-                  style={{ transform: `translateX(-${currentScroll * (100 / 3)}%)` }}
+                  style={{ transform: `translateX(calc(-${currentScroll * 33.333}% - ${currentScroll * 16}px))` }}
                 >
                   {typeAlertesList.map((alerte) => (
                     <div

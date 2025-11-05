@@ -66,15 +66,29 @@ export default function IncidentForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const { error } = await supabase.from('incidents').insert([formData]);
+    try {
+      const base = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${base}/alertes/incidents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-    setIsSubmitting(false);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    if (!error) {
+      await response.json();
+
       setIsSubmitted(true);
       setCurrentStep(1);
-    } else {
+    } catch (error) {
+      console.error('Submission error:', error);
       alert('Erreur lors de la soumission. Veuillez réessayer.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -157,7 +171,7 @@ export default function IncidentForm() {
     'Type de déclaration',
     'Organisation',
     'Incident',
-    'Découverte & Origine',
+    'Origine',
     'Impact',
     'Actions',
     'Informations complémentaires'
@@ -184,21 +198,19 @@ export default function IncidentForm() {
             {steps.map((step, index) => (
               <div key={index} className="flex items-center flex-1">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
-                    index + 1 === currentStep
-                      ? 'bg-red-600 text-white scale-110'
-                      : index + 1 < currentStep
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${index + 1 === currentStep
+                    ? 'bg-red-600 text-white scale-110'
+                    : index + 1 < currentStep
                       ? 'bg-green-500 text-white'
                       : 'bg-gray-300 text-gray-600'
-                  }`}
+                    }`}
                 >
                   {index + 1 < currentStep ? '✓' : index + 1}
                 </div>
                 {index < steps.length - 1 && (
                   <div
-                    className={`flex-1 h-1 mx-2 ${
-                      index + 1 < currentStep ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
+                    className={`flex-1 h-1 mx-2 ${index + 1 < currentStep ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
                   />
                 )}
               </div>

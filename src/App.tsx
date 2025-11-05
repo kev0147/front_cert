@@ -34,14 +34,14 @@ function App() {
         ) : (
           <Alertes onNavigate={handleNavigate} />
         );
-      case 'rapports':
+/*       case 'rapports':
         return <Rapports />;
       case 'bulletins':
         return <Bulletins />;
-/*       case 'documentation':
-        return <Documentation />; */
+      case 'documentation':
+        return <Documentation />;  */
       case 'contact':
-        return <Contact />;
+        return <Contact onNavigate={handleNavigate} />;
       case 'incident':
         return <IncidentForm />;
       default:
