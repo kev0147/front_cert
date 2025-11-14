@@ -120,7 +120,7 @@ export type Incident = {
   indentification_activ_affect_autre?: string;
   indentification_serv_affect?: string;
   indentification_serv_affect_autre?: string;
-  impact_averer?: string[]; // tableau JSON
+  impact_averer?: string; // tableau JSON
   poucentage_utili?: string;
   services_essentiels?: string;
 
@@ -130,7 +130,7 @@ export type Incident = {
   maniere_partie_prenant_incident?: string;
 
   // --- Actions correctives et mesures ---
-  action_cond_entre?: string[]; // tableau JSON
+  action_cond_entre?: string; // tableau JSON
   decription_mesure_tech?: string;
 
   // --- Communication et gestion ---
@@ -140,6 +140,7 @@ export type Incident = {
   prestataire_externe_incident?: string;
   denomination_sociale_prestataire?: string;
   telephone_prestataire?: string;
+  incident_remonte_externe_autre?: string;
 
   // --- Métadonnées ---
   created_at?: string;

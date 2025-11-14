@@ -13,21 +13,21 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
   return (
     <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-32 sm:h-40">
           <div
             className="flex items-center space-x-2 cursor-pointer group"
             onClick={() => onNavigate('home')}
           >
-            <img className="h-8 w-8 text-cyan-400 group-hover:text-cyan-300 transition-colors" src={logo} alt={logo} />
+            <img className="h-24 w-24 text-cyan-400 group-hover:text-cyan-300 transition-colors" src={logo} alt={logo} />
             <span className="text-xl font-bold group-hover:text-cyan-300 transition-colors">
-              CERT BF
+              CIRT BF
             </span>
           </div>
 
           <div className="hidden md:flex items-center space-x-1">
             <button
               onClick={() => onNavigate('home')}
-              className={`px-4 py-2 rounded-md transition-all ${
+              className={`px-6 py-2 rounded-md transition-all ${
                 currentPage === 'home'
                   ? 'bg-slate-800 text-cyan-400'
                   : 'text-gray-300 hover:bg-slate-800 hover:text-white'

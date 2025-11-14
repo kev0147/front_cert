@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alerte, TypeAlerte } from '../lib/supabase';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import logo from '../assets/273934dd-3f1c-49e0-996c-9ae851a411b1.png';
 
 type HomeProps = {
   onNavigate: (page: string, alerteId?: number) => void;
@@ -22,7 +23,7 @@ export default function Home({ onNavigate }: HomeProps) {
     {
       title: 'Surveillance 24/7 de Votre Sécurité',
       subtitle: 'Des alertes en temps réel pour une protection optimale',
-      image: 'https://images.pexels.com/photos/5483077/pexels-photo-5483077.jpeg',
+      image: logo,
     },
     {
       title: 'Conformité et Réglementation',
@@ -379,7 +380,11 @@ export default function Home({ onNavigate }: HomeProps) {
                       key={alerte.id}
                       onClick={() => handleAlerteClick(alerte.id)}
                       className="min-w-[calc(33.333%-16px)] bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-l-4 cursor-pointer"
-                      style={{ borderLeftColor: getSeveriteColor(alerte.severite).replace('bg-', '#') }}
+                      style={{
+                        borderLeftColor: getSeveriteColor(alerte.severite).replace('bg-', '#'), 
+                        background: `linear-gradient(to bottom right, white, ${getSeveriteColor(alerte.severite).replace('bg-', '#')})`,
+                      }}
+
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${getSeveriteColor(alerte.severite)}`}>
