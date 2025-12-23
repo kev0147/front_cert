@@ -1,4 +1,4 @@
-import { Mail, Phone, Globe } from 'lucide-react';
+import { Mail, Phone, Globe, Home } from 'lucide-react';
 
 type ContactProps = {
   onNavigate: (page: string) => void;
@@ -7,7 +7,7 @@ type ContactProps = {
 export default function Contact({ onNavigate }: ContactProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="bg-slate-900 text-white py-16">
+      <div className="bg-[#12284D] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact</h1>
           <p className="text-xl text-gray-300">
@@ -19,7 +19,7 @@ export default function Contact({ onNavigate }: ContactProps) {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="md:flex">
-            <div className="md:w-1/2 bg-gradient-to-br from-cyan-600 to-blue-700 p-12 text-white">
+            <div className="md:w-1/2 bg-gradient-to-br from-[#12284D] to-blue-700 p-12 text-white">
               <h2 className="text-3xl font-bold mb-6">Contactez-nous</h2>
               <p className="text-cyan-100 mb-8">
                 Notre équipe d'experts en cybersécurité est disponible pour répondre à toutes vos questions et vous accompagner dans la protection de vos systèmes.
@@ -31,7 +31,7 @@ export default function Contact({ onNavigate }: ContactProps) {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Email</h3>
-                    <p className="text-cyan-100">contact@contact.contact</p>
+                    <p className="text-cyan-100">infos@ssi.gov.bf</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
@@ -40,7 +40,24 @@ export default function Contact({ onNavigate }: ContactProps) {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Téléphone</h3>
-                    <p className="text-cyan-100">+226 00 00 00 00</p>
+                    <p className="text-cyan-100">+226 25 36 32 33</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-4">
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <Home className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1">Localisation</h3>
+
+                    <a
+                      href="https://maps.app.goo.gl/Lh8SJ8yT11jydJix5?g_st=aw"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-100"
+                    >
+                      Rue Zangoeg-Pelgo, Zogona, Ouagadougou
+                    </a>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
@@ -67,24 +84,28 @@ export default function Contact({ onNavigate }: ContactProps) {
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between items-center py-3 border-b border-gray-200">
                   <span className="font-medium text-slate-700">Lundi - Vendredi</span>
-                  <span className="text-gray-600">9h00 - 18h00</span>
-                </div>
-                <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                  <span className="font-medium text-slate-700">Samedi</span>
-                  <span className="text-gray-600">10h00 - 16h00</span>
+                  <span className="text-gray-600">7h30 - 16h00</span>
                 </div>
                 <div className="flex justify-between items-center py-3">
-                  <span className="font-medium text-slate-700">Dimanche</span>
+                  <span className="font-medium text-slate-700">Samedi - Dimanche</span>
                   <span className="text-gray-600">Fermé</span>
                 </div>
               </div>
 
-              <div className="bg-cyan-50 rounded-lg p-6 border border-cyan-200">
-                <h4 className="font-semibold text-slate-800 mb-2">Urgence 24/7</h4>
-                <p className="text-sm text-gray-700 mb-3">
-                  Pour les incidents critiques nécessitant une intervention immédiate :
+              <div className="bg-blue-700 rounded-lg p-6 border border-cyan-200">
+                <h4 className="font-semibold text-white mb-2">Urgence 24/7</h4>
+                <p className="text-sm text-white mb-3">
+                  Pour les incidents critiques nécessitant une intervention immédiate ecrivez-nous au :
                 </p>
-                <p className="text-lg font-bold text-cyan-700">+226 00 00 00 00</p>
+
+                <a
+                  href="cirt@ssi.gov.bf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-lg font-bold text-white"
+                >
+                  cirt@ssi.gov.bf
+                </a>
               </div>
             </div>
           </div>
@@ -94,9 +115,9 @@ export default function Contact({ onNavigate }: ContactProps) {
           <p className="text-gray-600 mb-4">
             Besoin de déclarer un incident de sécurité ?
           </p>
-          <button 
-            onClick={() => onNavigate('incident')} 
-            className="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 shadow-lg">
+          <button
+            onClick={() => onNavigate('incident')}
+            className="px-8 py-3 bg-[#D05224] text-white rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 shadow-lg">
             Déclarer un incident
           </button>
         </div>

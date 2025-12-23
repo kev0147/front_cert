@@ -11,6 +11,8 @@ export default function Alertes({ onNavigate }: AlertesProps) {
   const [typeAlertes, setTypeAlertes] = useState<TypeAlerte[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string | number>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     fetchAlertes();
@@ -123,17 +125,27 @@ export default function Alertes({ onNavigate }: AlertesProps) {
     onNavigate('alerte-detail', alerteId);
   };
 
-  const filteredByTypeAlertes = selectedType === "all"
-    ? alertes
-    : alertes.filter((a) => a.type_alerte?.id === selectedType);
+const filteredByType = selectedType === "all"
+  ? alertes
+  : alertes.filter((a) => a.type_alerte?.id === selectedType);
 
-  const filteredAlertes = searchTerm === '' ? filteredByTypeAlertes : filteredByTypeAlertes.filter(
-    (alerte) =>
+// STEP 2 — Filter by search
+const fullyFilteredAlertes = searchTerm === '' 
+  ? filteredByType
+  : filteredByType.filter((alerte) =>
       alerte.intitule.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (alerte.reference && alerte.reference.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (alerte.synthese && alerte.synthese.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (alerte.risque && alerte.risque.toLowerCase().includes(searchTerm.toLowerCase()))
-  );;
+    );
+
+// STEP 3 — Total pages based on ALL filtered results
+const totalPages = Math.ceil(fullyFilteredAlertes.length / itemsPerPage);
+
+// STEP 4 — Apply pagination NOW
+const startIndex = (currentPage - 1) * itemsPerPage;
+const paginatedAlertes = fullyFilteredAlertes.slice(startIndex, startIndex + itemsPerPage);
+
 
 
   const types = [
@@ -141,10 +153,11 @@ export default function Alertes({ onNavigate }: AlertesProps) {
     ...typeAlertes.map((t) => ({ id: t.id, libelle: t.libelle })),
   ];
 
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* ===== HEADER SECTION ===== */}
-      <div className="bg-slate-900 text-white py-16">
+      <div className="bg-[#12284D] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Alertes de Sécurité</h1>
           <p className="text-xl text-gray-300">
@@ -178,9 +191,9 @@ export default function Alertes({ onNavigate }: AlertesProps) {
               {types.map((type) => (
                 <button
                   key={type.id}
-                  onClick={() => setSelectedType(type.id)}
+                  onClick={() => {setSelectedType(type.id); setCurrentPage(1);} }
                   className={`px-6 py-2 rounded-full font-medium transition-all ${selectedType === type.id
-                    ? "bg-cyan-600 text-white shadow-md"
+                    ? "bg-[#324E79] text-white "
                     : "bg-white text-gray-700 hover:bg-gray-100 shadow-sm"
                     }`}
                 >
@@ -191,105 +204,133 @@ export default function Alertes({ onNavigate }: AlertesProps) {
 
             {/* ALERTES GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAlertes.map((alerte) => (
-                <div
-                  key={alerte.id}
-                  onClick={() => handleAlerteClick(alerte.id)}
-                  className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-l-4 cursor-pointer"
-                  style={{ borderLeftColor: getSeveriteColor(alerte.severite).replace('bg-', '#') }}
-                >
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                    <div className="flex-1">
-                      {/* ===== Header with badges ===== */}
-                      <div className="flex flex-wrap items-center gap-3 mb-3">
-                        <div
-                          className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${getSeveriteColor(
-                            alerte.severite
-                          )}`}
-                        >
-                          {alerte.severite?.toUpperCase() || 'N/A'}
+
+              {
+                paginatedAlertes.map((alerte) => (
+                  <div
+                    key={alerte.id}
+                    onClick={() => handleAlerteClick(alerte.id)}
+                    className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-l-4 cursor-pointer"
+                    style={{ borderLeftColor: getSeveriteColor(alerte.severite).replace('bg-', '#') }}
+                  >
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                      <div className="flex-1">
+                        {/* ===== Header with badges ===== */}
+                        <div className="flex flex-wrap items-center gap-3 mb-3">
+                          <div
+                            className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${getSeveriteColor(
+                              alerte.severite
+                            )}`}
+                          >
+                            {alerte.severite?.toUpperCase() || 'N/A'}
+                          </div>
+                          {alerte.type_alerte && (
+                            <span className="px-3 py-1 bg-[#41618F] text-white text-xs font-semibold rounded-full">
+                              {alerte.type_alerte.libelle}
+                            </span>
+                          )}
+                          <div className="flex items-center space-x-2">
+                            {getEtatBadge(alerte.etat)}
+                          </div>
                         </div>
-                        {alerte.type_alerte && (
-                          <span className="px-3 py-1 bg-cyan-100 text-cyan-800 text-xs font-semibold rounded-full">
-                            {alerte.type_alerte.libelle}
-                          </span>
+
+                        {/* ===== Reference ===== */}
+                        {alerte.reference && (
+                          <p className="text-xs text-gray-500 font-mono mb-2">Réf: {alerte.reference}</p>
                         )}
-                        <div className="flex items-center space-x-2">
-                          {getEtatBadge(alerte.etat)}
-                        </div>
+
+                        {/* ===== Title ===== */}
+                        <h3 className="text-xl font-semibold text-slate-800 mb-2 hover:text-cyan-600 transition-colors">
+                          {alerte.intitule}
+                        </h3>
+
+                        {/* ===== Preview of synthese or risque ===== */}
+                        <div
+                          className="text-gray-600 mb-4 line-clamp-2"
+                          dangerouslySetInnerHTML={{
+                            __html: alerte.synthese || alerte.risque || 'Aucune description disponible',
+                          }}
+                        />
+
+                        {/* ===== Date ===== */}
+                        <p className="text-sm text-gray-400">
+                          Publié le{' '}
+                          {new Date(alerte.created_at).toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
                       </div>
 
-                      {/* ===== Reference ===== */}
-                      {alerte.reference && (
-                        <p className="text-xs text-gray-500 font-mono mb-2">Réf: {alerte.reference}</p>
+                      {/* ===== DOWNLOAD BUTTON ===== */}
+                      {alerte.file_url && (
+                        <button
+                          onClick={(e) => handleDownload(alerte, e)}
+                          className="flex items-center space-x-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all transform hover:scale-105 shadow-md self-start"
+                          title="Télécharger le document"
+                        >
+                          <Download className="h-5 w-5" />
+                          <span className="hidden sm:inline">Télécharger</span>
+                        </button>
                       )}
-
-                      {/* ===== Title ===== */}
-                      <h3 className="text-xl font-semibold text-slate-800 mb-2 hover:text-cyan-600 transition-colors">
-                        {alerte.intitule}
-                      </h3>
-
-                      {/* ===== Preview of synthese or risque ===== */}
-                      <div
-                        className="text-gray-600 mb-4 line-clamp-2"
-                        dangerouslySetInnerHTML={{
-                          __html: alerte.synthese || alerte.risque || 'Aucune description disponible',
-                        }}
-                      />
-
-                      {/* ===== Date ===== */}
-                      <p className="text-sm text-gray-400">
-                        Publié le{' '}
-                        {new Date(alerte.created_at).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
                     </div>
-
-                    {/* ===== DOWNLOAD BUTTON ===== */}
-                    {alerte.file_url && (
-                      <button
-                        onClick={(e) => handleDownload(alerte, e)}
-                        className="flex items-center space-x-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all transform hover:scale-105 shadow-md self-start"
-                        title="Télécharger le document"
-                      >
-                        <Download className="h-5 w-5" />
-                        <span className="hidden sm:inline">Télécharger</span>
-                      </button>
-                    )}
                   </div>
-                </div>
-              ))}
+                ))}
+
             </div>
 
             {/* EMPTY STATE */}
-            {filteredAlertes.length === 0 && (
+            {paginatedAlertes.length === 0 && (
               <div className="text-center py-12">
                 <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 text-lg">Aucune alerte trouvée</p>
               </div>
             )}
           </div>
+
+
         </div>
 
         {/* ===== NO RESULTS MESSAGE ===== */}
-        {filteredAlertes.length === 0 && (
+        {paginatedAlertes.length === 0 && (
           <div className="text-center py-12">
             <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600 text-lg">Aucune alerte trouvée</p>
           </div>
         )}
+        {/* PAGINATION BUTTONS */}
+        <div className="flex justify-center items-center mt-8 space-x-4">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            className={`px-4 py-2 rounded-lg border ${currentPage === 1
+              ? 'opacity-40 cursor-not-allowed'
+              : 'hover:bg-slate-100'
+              }`}
+          >
+            Précédent
+          </button>
+
+          <span className="text-slate-700 font-medium">
+            Page {currentPage} / {totalPages}
+          </span>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            className={`px-4 py-2 rounded-lg border ${currentPage === totalPages
+              ? 'opacity-40 cursor-not-allowed'
+              : 'hover:bg-slate-100'
+              }`}
+          >
+            Suivant
+          </button>
+        </div>
+
       </div>
     </div>
   );
 }
-
-
-
-/* 
- */
-

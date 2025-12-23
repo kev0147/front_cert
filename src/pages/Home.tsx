@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alerte, TypeAlerte } from '../lib/supabase';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import logo from '../assets/273934dd-3f1c-49e0-996c-9ae851a411b1.png';
@@ -12,6 +12,7 @@ export default function Home({ onNavigate }: HomeProps) {
   const [alertes, setAlertes] = useState<Alerte[]>([]);
   const [typeAlertes, setTypeAlertes] = useState<TypeAlerte[]>([]);
   const [alerteScrolls, setAlerteScrolls] = useState<{ [key: number]: number }>({});
+  const scrollRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
 
   const slides = [
@@ -127,16 +128,34 @@ export default function Home({ onNavigate }: HomeProps) {
   };
 
   const scrollAlertes = (typeId: number, direction: 'left' | 'right') => {
-    const currentScroll = alerteScrolls[typeId] || 0;
-    const typeAlertes = alertes.filter(a => a.type_alerte?.id === typeId);
-    const maxScroll = Math.max(0, typeAlertes.length - 3);
+    const container = scrollRefs.current[typeId];
+    if (!container) return;
 
-    if (direction === 'right' && currentScroll < maxScroll) {
-      setAlerteScrolls({ ...alerteScrolls, [typeId]: currentScroll + 1 });
-    } else if (direction === 'left' && currentScroll > 0) {
-      setAlerteScrolls({ ...alerteScrolls, [typeId]: currentScroll - 1 });
-    }
+    const card = container.querySelector<HTMLElement>('[data-card]');
+    if (!card) return;
+
+    const scrollAmount = card.offsetWidth + 24; // card + gap
+
+    container.scrollBy({
+      left: direction === 'right' ? scrollAmount : -scrollAmount,
+      behavior: 'smooth',
+    });
   };
+
+  const canScrollLeft = (el: HTMLDivElement | null) =>
+    el ? el.scrollLeft > 0 : false;
+
+  const canScrollRight = (el: HTMLDivElement | null) =>
+    el ? el.scrollLeft + el.clientWidth < el.scrollWidth : false;
+
+
+  const getCardsPerView = () => {
+    if (window.innerWidth < 768) return 1;
+    if (window.innerWidth < 1024) return 2;
+    return 3;
+  };
+
+  const cardsPerView = getCardsPerView();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -180,161 +199,6 @@ export default function Home({ onNavigate }: HomeProps) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
-        {/* ===== ALERTES SECTION WITH UPDATED FIELDS ===== */}
-        {/*         <section>
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-slate-800">Alertes Récentes</h2>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => scrollAlertes('left')}
-                disabled={alerteScroll === 0}
-                className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="h-5 w-5 text-slate-700" />
-              </button>
-              <button
-                onClick={() => scrollAlertes('right')}
-                disabled={alerteScroll >= alertes.length - 3}
-                className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="h-5 w-5 text-slate-700" />
-              </button>
-            </div>
-          </div>
-          <div className="overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-in-out gap-6"
-              style={{ transform: `translateX(-${alerteScroll * (100 / 3)}%)` }}
-            >
-              {alertes.map((alerte) => (
-                <div
-                  key={alerte.id}
-                  onClick={() => handleAlerteClick(alerte.id)}
-                  className="min-w-[calc(33.333%-16px)] bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-l-4 cursor-pointer"
-                  style={{ borderLeftColor: getSeveriteColor(alerte.severite).replace('bg-', '#') }}
-                >
-                  
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${getSeveriteColor(alerte.severite)}`}>
-                      {alerte.severite?.toUpperCase() || 'N/A'}
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      {getEtatBadge(alerte.etat)}
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-800 mb-2">{alerte.intitule}</h3>
-                  {alerte.type_alerte && (
-                    <p className="text-xs text-cyan-600 font-medium mb-2">
-                      {alerte.type_alerte.libelle}
-                    </p>
-                  )}
-                  <div
-                    className="text-sm text-gray-600 line-clamp-3"
-                    dangerouslySetInnerHTML={{ __html: alerte.risque || alerte.synthese || 'Aucune description disponible' }}
-                  />
-                  <p className="text-xs text-gray-400 mt-4">
-                    {new Date(alerte.created_at).toLocaleDateString('fr-FR', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-center mt-8">
-            <button
-              onClick={() => onNavigate('alertes')}
-              className="flex items-center space-x-2 px-8 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all transform hover:scale-105 shadow-lg"
-            >
-              <span className="font-semibold">Voir toutes les alertes</span>
-              <ArrowRight className="h-5 w-5" />
-            </button>
-          </div>
-        </section> */}
-
-        {/*         {
-          typeAlertes.map((type) => (
-            <section key={type.id}>
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold text-slate-800">Actualite des {type.libelle}s</h2>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => scrollAlertes('left')}
-                    disabled={alerteScroll === 0}
-                    className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft className="h-5 w-5 text-slate-700" />
-                  </button>
-                  <button
-                    onClick={() => scrollAlertes('right')}
-                    disabled={alerteScroll >= alertes.length - 3}
-                    className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight className="h-5 w-5 text-slate-700" />
-                  </button>
-                </div>
-              </div>
-              <div className="overflow-hidden">
-                <div
-                  className="flex transition-transform duration-500 ease-in-out gap-6"
-                  style={{ transform: `translateX(-${alerteScroll * (100 / 3)}%)` }}
-                >
-                  {alertes
-                    .filter(a => a.type_alerte?.id === type.id)
-                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                    .slice(0, 5)
-                    .map((alerte) => (
-                      <div
-                        key={alerte.id}
-                        onClick={() => handleAlerteClick(alerte.id)}
-                        className="min-w-[calc(33.333%-16px)] bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-l-4 cursor-pointer"
-                        style={{ borderLeftColor: getSeveriteColor(alerte.severite).replace('bg-', '#') }}
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${getSeveriteColor(alerte.severite)}`}>
-                            {alerte.severite?.toUpperCase() || 'N/A'}
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            {getEtatBadge(alerte.etat)}
-                          </div>
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-800 mb-2">{alerte.intitule}</h3>
-                        {alerte.type_alerte && (
-                          <p className="text-xs text-cyan-600 font-medium mb-2">
-                            {alerte.type_alerte.libelle}
-                          </p>
-                        )}
-                        <div
-                          className="text-sm text-gray-600 line-clamp-3"
-                          dangerouslySetInnerHTML={{ __html: alerte.risque || alerte.synthese || 'Aucune description disponible' }}
-                        />
-                        <p className="text-xs text-gray-400 mt-4">
-                          {new Date(alerte.created_at).toLocaleDateString('fr-FR', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })}
-                        </p>
-                      </div>
-                    ))}
-                </div>
-              </div>
-
-              <div className="flex justify-center mt-8">
-                <button
-                  onClick={() => onNavigate('alertes')}
-                  className="flex items-center space-x-2 px-8 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all transform hover:scale-105 shadow-lg"
-                >
-                  <span className="font-semibold">Voir toutes les alertes</span>
-                  <ArrowRight className="h-5 w-5" />
-                </button>
-              </div>
-            </section>
-          ))
-        } */}
 
         {typeAlertes.map((type) => {
           const typeAlertesList = alertes
@@ -343,9 +207,6 @@ export default function Home({ onNavigate }: HomeProps) {
             .slice(0, 5);
 
           if (typeAlertesList.length === 0) return null;
-
-          const currentScroll = alerteScrolls[type.id] || 0;
-          const maxScroll = Math.max(0, typeAlertesList.length - 3);
 
           return (
             <section key={type.id} className="mb-16">
@@ -356,70 +217,79 @@ export default function Home({ onNavigate }: HomeProps) {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => scrollAlertes(type.id, 'left')}
-                    disabled={currentScroll === 0}
+                    disabled={!canScrollLeft(scrollRefs.current[type.id])}
                     className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="h-5 w-5 text-slate-700" />
                   </button>
                   <button
                     onClick={() => scrollAlertes(type.id, 'right')}
-                    disabled={currentScroll >= maxScroll}
+                    disabled={!canScrollRight(scrollRefs.current[type.id])}
                     className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronRight className="h-5 w-5 text-slate-700" />
                   </button>
                 </div>
               </div>
-              <div className="overflow-hidden">
-                <div
-                  className="flex transition-transform duration-500 ease-in-out gap-6"
-                  style={{ transform: `translateX(calc(-${currentScroll * 33.333}% - ${currentScroll * 16}px))` }}
-                >
-                  {typeAlertesList.map((alerte) => (
-                    <div
-                      key={alerte.id}
-                      onClick={() => handleAlerteClick(alerte.id)}
-                      className="min-w-[calc(33.333%-16px)] bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-l-4 cursor-pointer"
-                      style={{
-                        borderLeftColor: getSeveriteColor(alerte.severite).replace('bg-', '#'), 
-                        background: `linear-gradient(to bottom right, white, ${getSeveriteColor(alerte.severite).replace('bg-', '#')})`,
-                      }}
 
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${getSeveriteColor(alerte.severite)}`}>
-                          {alerte.severite?.toUpperCase() || 'N/A'}
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          {getEtatBadge(alerte.etat)}
-                        </div>
+              {/* ===== Conteneur scrollable ===== */}
+              <div
+                className="relative flex gap-6 scroll-smooth snap-x snap-mandatory overflow-x-auto lg:overflow-x-hidden scrollbar-hide"
+                ref={(el) => (scrollRefs.current[type.id] = el)}
+              >
+                {typeAlertesList.map((alerte) => (
+                  <div
+                    key={alerte.id}
+                    data-card
+                    className="
+              snap-start
+              min-w-full       // mobile
+              md:min-w-[50%]   // tablette
+              lg:min-w-[33.333%] // desktop
+              bg-white rounded-lg shadow-md
+              hover:shadow-xl transition-all
+              p-6 border-l-4 cursor-pointer
+            "
+                    style={{
+                      borderLeftColor: getSeveriteColor(alerte.severite).replace('bg-', '#'),
+                      background: `linear-gradient(to bottom right, white, ${getSeveriteColor(alerte.severite).replace('bg-', '#')})`,
+                    }}
+                    onClick={() => handleAlerteClick(alerte.id)}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${getSeveriteColor(alerte.severite)}`}>
+                        {alerte.severite?.toUpperCase() || 'N/A'}
                       </div>
-                      <h3 className="text-lg font-semibold text-slate-800 mb-2">{alerte.intitule}</h3>
-                      {alerte.type_alerte && (
-                        <p className="text-xs text-cyan-600 font-medium mb-2">
-                          {alerte.type_alerte.libelle}
-                        </p>
-                      )}
-                      <div
-                        className="text-sm text-gray-600 line-clamp-3"
-                        dangerouslySetInnerHTML={{ __html: alerte.risque || alerte.synthese || 'Aucune description disponible' }}
-                      />
-                      <p className="text-xs text-gray-400 mt-4">
-                        {new Date(alerte.created_at).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                      </p>
+                      <div className="flex items-center space-x-1">
+                        {getEtatBadge(alerte.etat)}
+                      </div>
                     </div>
-                  ))}
-                </div>
+                    <h3 className="text-base md:text-lg font-semibold text-slate-800 mb-2">{alerte.intitule}</h3>
+                    {alerte.type_alerte && (
+                      <p className="text-xs text-cyan-600 font-medium mb-2">
+                        {alerte.type_alerte.libelle}
+                      </p>
+                    )}
+                    <div
+                      className="text-sm text-gray-600 line-clamp-3"
+                      dangerouslySetInnerHTML={{ __html: alerte.risque || alerte.synthese || 'Aucune description disponible' }}
+                    />
+                    <p className="text-xs text-gray-400 mt-4">
+                      {new Date(alerte.created_at).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                ))}
               </div>
 
+              {/* ===== Bouton "Tout voir" ===== */}
               <div className="flex justify-center mt-8">
                 <button
                   onClick={() => onNavigate('alertes')}
-                  className="flex items-center space-x-2 px-8 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all transform hover:scale-105 shadow-lg"
+                  className="flex items-center space-x-2 px-8 py-3 bg-[#324E79] text-white rounded-lg hover:bg-[#6187BB] transition-all transform hover:scale-105 shadow-lg"
                 >
                   <span className="font-semibold">Tout voir: {type.libelle}s</span>
                   <ArrowRight className="h-5 w-5" />
@@ -428,6 +298,7 @@ export default function Home({ onNavigate }: HomeProps) {
             </section>
           );
         })}
+
 
       </div>
     </div>

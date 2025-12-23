@@ -10,6 +10,7 @@ type AlerteDetailProps = {
 export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
     const [alerte, setAlerte] = useState<Alerte | null>(null);
     const [loading, setLoading] = useState(true);
+    const [typeAlerte, setTypeAlerte] = useState<TypeAlerte | null>(null);
 
     useEffect(() => {
         fetchAlerte();
@@ -17,62 +18,65 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
 
     // ===== Fetch single alerte with all details =====
     const fetchAlerte = async () => {
-        try {
-            const base = import.meta.env.VITE_SUPABASE_URL;
-            const res = await fetch(`${base}/alertes/${id}`);
+  try {
+    const base = import.meta.env.VITE_SUPABASE_URL;
+    const res = await fetch(`${base}/alertes/${id}`);
 
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status} - Failed to fetch alerte`);
-            }
+    if (!res.ok) throw new Error(`HTTP ${res.status} - Failed to fetch alerte`);
 
-            const response = await res.json();
-            const a = response.data || response;
+    const response = await res.json();
+    const a = response.data || response;
 
-            const type: TypeAlerte | null = {
-                id: response.type_alerte.id,
-                libelle: response.type_alerte.libelle,
-                description: response.type_alerte.description,
-                created_by: null,
-                updated_by: null,
-                deleted_by: null,
-                created_at: '',
-                updated_at: '',
-                deleted_at: null
-            };
-
-            const alerte: Alerte = {
-                id: a.id,
-                reference: a.reference,
-                intitule: a.intitule,
-                date: a.date,
-                severite: a.severite,
-                etat: a.etat,
-                risque: a.risque,
-                systemes_affectes: a.systemes_affectes,
-                synthese: a.synthese,
-                solution: a.solution,
-                source: a.source,
-                created_at: a.created_at,
-                updated_at: a.updated_at,
-                // include type_alerte if nested
-                type_alerte: a.date_initial,
-                type_alerte_id: type ? type.id : null,
-                date_initial: null,
-                date_traite: a.date_traite,
-                concerne: null,
-                file_url: null,
-                created_by: null,
-                updated_by: null,
-                deleted_by: null,
-                deleted_at: null
-            };
-            setAlerte(alerte);
-            setLoading(false);
-        } catch (err) {
-            console.error('❌ Failed to fetch alerte:', err);
-            throw err;
+    const type: TypeAlerte | null = a.type_alerte
+      ? {
+          id: a.type_alerte.id,
+          libelle: a.type_alerte.libelle,
+          description: a.type_alerte.description,
+          created_by: null,
+          updated_by: null,
+          deleted_by: null,
+          created_at: '',
+          updated_at: '',
+          deleted_at: null
         }
+      : null;
+
+    const alerte: Alerte = {
+      id: a.id,
+      reference: a.reference,
+      intitule: a.intitule,
+      date: a.date,
+      severite: a.severite,
+      etat: a.etat,
+      risque: a.risque,
+      systemes_affectes: a.systemes_affectes,
+      synthese: a.synthese,
+      solution: a.solution,
+      source: a.source,
+      created_at: a.created_at,
+      updated_at: a.updated_at,
+      type_alerte: type,
+      type_alerte_id: type?.id || null,
+      date_initial: a.date_initial || null,
+      date_traite: a.date_traite || null,
+      concerne: a.concerne || null,
+      file_url: a.file_url || null,
+      created_by: a.created_by || null,
+      updated_by: a.updated_by || null,
+      deleted_by: a.deleted_by || null,
+      deleted_at: a.deleted_at || null
     };
+
+    setTypeAlerte(type);
+    setAlerte(alerte);
+    setLoading(false);
+  } catch (err) {
+    console.error('❌ Failed to fetch alerte:', err);
+    setLoading(false);
+    throw err;
+  }
+};
+
 
 
     // ===== Get severity color =====
@@ -118,14 +122,37 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
         );
     };
 
-    // ===== Handle download =====
-    const handleDownload = () => {
 
+    const handleDownload = async () => {
         try {
-            // In a real implementation, this would call your backend API
-            // Example: GET /alertes/:id/download
             const base = import.meta.env.VITE_SUPABASE_URL;
-            window.open(`${base}/alertes/${alerte?.id}/imprimer`, '_blank');
+            const response = await fetch(`${base}/alertes/${alerte?.id}/imprimer`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/pdf',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors du téléchargement du fichier');
+            }
+
+            // Convertir la réponse en blob (binaire)
+            const blob = await response.blob();
+
+            // Créer une URL temporaire pour ce blob
+            const url = window.URL.createObjectURL(blob);
+
+            // Créer un lien invisible et déclencher le téléchargement
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${typeAlerte?.libelle}_${alerte?.intitule}.pdf`; // nom du fichier
+            document.body.appendChild(a);
+            a.click();
+
+            // Nettoyage
+            a.remove();
+            window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Erreur lors du téléchargement:', error);
             alert('Erreur lors du téléchargement du fichier');
@@ -163,7 +190,7 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
             {/* ===== HEADER WITH BACK BUTTON ===== */}
-            <div className="bg-slate-900 text-white py-8">
+            <div className="bg-[#12284D] text-white py-8">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/*                     <button
                         onClick={() => onNavigate('alertes')}
@@ -180,7 +207,7 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
                         {
                             <button
                                 onClick={handleDownload}
-                                className="flex items-center space-x-2 px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all transform hover:scale-105 shadow-lg"
+                                className="flex items-center space-x-2 px-6 py-3 bg-[#719AD1] text-[white] rounded-lg hover:bg-[#324E79] transition-all transform hover:scale-105 shadow-lg"
                             >
                                 <Download className="h-5 w-5" />
                                 <span>Télécharger le document</span>
@@ -227,13 +254,13 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
                         </div>
 
                         {/* ===== Date initiale ===== */}
-                        {alerte.created_at && (
+                        {alerte.date_initial && (
                             <div className="flex items-start space-x-3">
                                 <Calendar className="h-6 w-6 text-slate-600 mt-1" />
                                 <div>
                                     <p className="text-sm text-gray-600 font-medium">Date de découverte</p>
                                     <p className="text-lg text-slate-800">
-                                        {new Date(alerte.created_at).toLocaleDateString('fr-FR', {
+                                        {new Date(alerte.date_initial).toLocaleDateString('fr-FR', {
                                             day: 'numeric',
                                             month: 'long',
                                             year: 'numeric',
@@ -363,7 +390,7 @@ export default function AlerteDetail({ id, onNavigate }: AlerteDetailProps) {
                 <div className="flex justify-center mt-8">
                     <button
                         onClick={() => onNavigate('alertes')}
-                        className="flex items-center space-x-2 px-8 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-all"
+                        className="flex items-center space-x-2 px-8 py-3 bg-[#12284D] text-white rounded-lg hover:bg-[#41618F] transition-all"
                     >
                         <ArrowLeft className="h-5 w-5" />
                         <span>Retour aux alertes</span>

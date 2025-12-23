@@ -50,7 +50,7 @@ export type Alerte = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  type_alerte?: TypeAlerte;
+  type_alerte?: TypeAlerte | null;
 };
 
 export type Rapport = {
